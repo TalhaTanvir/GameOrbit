@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 
 export default function Navbar() {
   return (
@@ -12,6 +13,8 @@ export default function Navbar() {
         </Link>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          <ThemeToggle />
+
           <label className="relative hidden md:block">
             <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
               <svg
