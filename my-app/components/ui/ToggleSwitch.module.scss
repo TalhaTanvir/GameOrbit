@@ -1,9 +1,8 @@
 .switch {
-  font-size: 14px;
   position: relative;
   display: inline-block;
   width: 48px;
-  height: 26px;
+  height: 28px;
 
   .input {
     opacity: 0;
@@ -14,79 +13,238 @@
   .slider {
     position: absolute;
     cursor: pointer;
-    inset: 0;
-    background-color: #73c0fc;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #2196f3;
     transition: 0.4s;
-    border-radius: 30px;
-
-    &::before {
-      position: absolute;
-      content: "";
-      height: 22px;
-      width: 22px;
-      border-radius: 9999px;
-      left: 2px;
-      bottom: 2px;
-      z-index: 2;
-      background-color: #e8e8e8;
-      transition: 0.4s;
-    }
+    z-index: 0;
+    overflow: hidden;
   }
 
-  .sun svg {
+  .sunMoon {
     position: absolute;
-    top: 5px;
-    left: 29px;
-    z-index: 1;
-    width: 15px;
-    height: 15px;
-    animation: rotate 15s linear infinite;
-  }
-
-  .moon svg {
-    fill: #73c0fc;
-    position: absolute;
-    top: 5px;
-    left: 5px;
-    z-index: 1;
-    width: 14px;
-    height: 14px;
-    animation: tilt 5s linear infinite;
+    height: 22px;
+    width: 22px;
+    left: 3px;
+    bottom: 3px;
+    background-color: yellow;
+    transition: 0.4s;
   }
 
   .input:checked + .slider {
-    background-color: #183153;
+    background-color: #000;
   }
 
   .input:focus + .slider {
-    box-shadow: 0 0 1px #183153;
+    box-shadow: 0 0 1px #2196f3;
   }
 
-  .input:checked + .slider::before {
-    transform: translateX(22px);
+  .input:checked + .slider .sunMoon {
+    transform: translateX(20px);
+    background-color: #fff;
+  }
+
+  .moonDot {
+    opacity: 0;
+    transition: 0.4s;
+    fill: gray;
+  }
+
+  .input:checked + .slider .sunMoon .moonDot {
+    opacity: 1;
+  }
+
+  .round {
+    border-radius: 28px;
+  }
+
+  .round .sunMoon {
+    border-radius: 50%;
+  }
+
+  .moonDot1 {
+    left: 8px;
+    top: 2px;
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    z-index: 4;
+  }
+
+  .moonDot2 {
+    left: 2px;
+    top: 8px;
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    z-index: 4;
+  }
+
+  .moonDot3 {
+    left: 13px;
+    top: 15px;
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    z-index: 4;
+  }
+
+  .lightRay {
+    position: absolute;
+    z-index: -1;
+    fill: #fff;
+    opacity: 10%;
+  }
+
+  .lightRay1 {
+    left: -6px;
+    top: -6px;
+    width: 34px;
+    height: 34px;
+  }
+
+  .lightRay2 {
+    left: -40%;
+    top: -40%;
+    width: 44px;
+    height: 44px;
+  }
+
+  .lightRay3 {
+    left: -14px;
+    top: -14px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .cloudLight {
+    position: absolute;
+    fill: #eee;
+    animation: cloud-move 6s infinite;
+  }
+
+  .cloudDark {
+    position: absolute;
+    fill: #ccc;
+    animation: cloud-move 6s infinite 1s;
+  }
+
+  .cloud1 {
+    left: 24px;
+    top: 12px;
+    width: 32px;
+  }
+
+  .cloud2 {
+    left: 35px;
+    top: 8px;
+    width: 16px;
+  }
+
+  .cloud3 {
+    left: 14px;
+    top: 19px;
+    width: 24px;
+  }
+
+  .cloud4 {
+    left: 29px;
+    top: 14px;
+    width: 32px;
+  }
+
+  .cloud5 {
+    left: 38px;
+    top: 11px;
+    width: 16px;
+  }
+
+  .cloud6 {
+    left: 18px;
+    top: 21px;
+    width: 24px;
+  }
+
+  .stars {
+    transform: translateY(-26px);
+    opacity: 0;
+    transition: 0.4s;
+  }
+
+  .star {
+    fill: #fff;
+    position: absolute;
+    transition: 0.4s;
+    animation: star-twinkle 2s infinite;
+  }
+
+  .input:checked + .slider .stars {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .star1 {
+    width: 16px;
+    top: 2px;
+    left: 2px;
+    animation-delay: 0.3s;
+  }
+
+  .star2 {
+    width: 5px;
+    top: 13px;
+    left: 2px;
+  }
+
+  .star3 {
+    width: 10px;
+    top: 16px;
+    left: 8px;
+    animation-delay: 0.6s;
+  }
+
+  .star4 {
+    width: 14px;
+    top: 0;
+    left: 14px;
+    animation-delay: 1.3s;
   }
 }
 
-@keyframes rotate {
+@keyframes cloud-move {
   0% {
-    transform: rotate(0);
+    transform: translateX(0);
   }
+
+  40% {
+    transform: translateX(4px);
+  }
+
+  80% {
+    transform: translateX(-4px);
+  }
+
   100% {
-    transform: rotate(360deg);
+    transform: translateX(0);
   }
 }
 
-@keyframes tilt {
+@keyframes star-twinkle {
   0% {
-    transform: rotate(0deg);
+    transform: scale(1);
   }
-  25% {
-    transform: rotate(-10deg);
+
+  40% {
+    transform: scale(1.2);
   }
-  75% {
-    transform: rotate(10deg);
+
+  80% {
+    transform: scale(0.8);
   }
+
   100% {
-    transform: rotate(0deg);
+    transform: scale(1);
   }
 }
