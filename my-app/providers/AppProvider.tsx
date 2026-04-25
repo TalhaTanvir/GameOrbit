@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import type { ReactNode } from "react";
+import { Toaster } from "sonner";
 import { useThemeStore } from "@/store/ThemeStore";
 
 type AppProviderProps = {
@@ -34,8 +35,15 @@ export default function AppProvider({ children }: AppProviderProps) {
   }, [mode, setResolvedTheme]);
 
   useEffect(() => {
-    document.documentElement.dataset.theme = resolvedTheme;
+    const root = document.documentElement;
+    root.dataset.theme = resolvedTheme;
+    root.classList.toggle("dark", resolvedTheme === "dark");
   }, [resolvedTheme]);
 
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <Toaster theme={resolvedTheme} position="top-right" richColors duration={1800} />
+    </>
+  );
 }

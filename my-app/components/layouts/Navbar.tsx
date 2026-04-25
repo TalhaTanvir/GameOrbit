@@ -1,13 +1,21 @@
+"use client";
+
 import Link from "next/link";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
+import { useCartStore } from "@/store/CartStore";
 
 export default function Navbar() {
+  const totalItems = useCartStore((state) => state.totalItems);
+  const hasHydrated = useCartStore((state) => state.hasHydrated);
+  const itemCount = hasHydrated ? totalItems : 0;
+
   return (
     <nav className="sticky top-0 z-40 w-full border-b border-[color:color-mix(in_srgb,var(--foreground)_16%,transparent)] bg-[color:color-mix(in_srgb,var(--background)_88%,transparent)] backdrop-blur">
       <div className="mx-auto flex h-16 w-full items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Link
           href="/"
+          prefetch
           className="text-xl font-bold tracking-tight text-[var(--foreground)] transition-colors hover:text-[color:color-mix(in_srgb,var(--foreground)_70%,transparent)]"
         >
           GameOrbit
@@ -58,13 +66,19 @@ export default function Navbar() {
 
           <ThemeToggle />
 
-          <button
-            type="button"
+          <Link
+            href="/cart"
+            prefetch
             aria-label="Open cart"
             className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-[color:color-mix(in_srgb,var(--foreground)_82%,transparent)] transition hover:bg-[color:color-mix(in_srgb,var(--foreground)_10%,transparent)]"
           >
             <HiOutlineShoppingBag className="h-5 w-5" aria-hidden="true" />
-          </button>
+            {itemCount > 0 ? (
+              <span className="absolute -right-0.5 -top-0.5 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[9px] font-bold leading-none text-white">
+                {itemCount}
+              </span>
+            ) : null}
+          </Link>
         </div>
       </div>
     </nav>
