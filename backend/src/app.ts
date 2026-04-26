@@ -1,34 +1,34 @@
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import express, { type NextFunction, type Request, type Response } from "express";
+import express, { type Request, type Response } from "express";
 import helmet from "helmet";
-import mongoSanitize from "express-mongo-sanitize";
 import morgan from "morgan";
 import { env } from "./config/env.ts";
-
-type ErrorWithStatus = Error & {
-  statusCode?: number;
-};
+import { apiRateLimiter, errorHandler, notFoundHandler } from "./middleware/index.ts";
+import rootRouter from "./routes/index.ts";
 
 const app = express();
 const apiPrefix = env.apiPrefix;
 
 // Supports comma-separated values in CORS_ORIGIN, e.g. "http://localhost:3000,https://app.example.com"
 const allowedOrigins = env.corsOrigins;
+const corsOrigin = env.isProduction
+  ? (allowedOrigins.length > 0 ? allowedOrigins : false)
+  : true;
 
 app.disable("x-powered-by");
 
 app.use(helmet());
 app.use(
   cors({
-    origin: allowedOrigins.length > 0 ? allowedOrigins : true,
+    origin: corsOrigin,
     credentials: true,
   })
 );
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(mongoSanitize());
+app.use(apiRateLimiter);
 
 if (env.nodeEnv !== "test") {
   app.use(morgan(env.isProduction ? "combined" : "dev"));
@@ -39,6 +39,10 @@ app.get("/", (_req: Request, res: Response) => {
     service: "GameOrbit Backend",
     status: "ok",
   });
+});
+
+app.get("/favicon.ico", (_req: Request, res: Response) => {
+  res.status(204).end();
 });
 
 app.get(
@@ -52,29 +56,8 @@ app.get(
   }
 );
 
-app.use((_req: Request, res: Response) => {
-  res.status(404).json({
-    success: false,
-    message: "Route not found",
-  });
-});
-
-app.use(
-  (
-    error: ErrorWithStatus,
-    _req: Request,
-    res: Response,
-    _next: NextFunction
-  ) => {
-    const statusCode = error.statusCode || 500;
-    const isProduction = env.isProduction;
-
-    res.status(statusCode).json({
-      success: false,
-      message: error.message || "Internal Server Error",
-      ...(isProduction ? {} : { stack: error.stack }),
-    });
-  }
-);
+app.use(apiPrefix, rootRouter);
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 export default app;
