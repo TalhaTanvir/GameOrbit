@@ -1,0 +1,50 @@
+# ----------------------------
+# Dependencies
+# ----------------------------
+node_modules/
+
+# ----------------------------
+# Build outputs
+# ----------------------------
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# ----------------------------
+# Runtime files
+# ----------------------------
+logs/
+*.log
+*.pid
+*.seed
+*.pid.lock
+tmp/
+temp/
+
+# ----------------------------
+# Environment & secrets
+# ----------------------------
+.env
+.env.*
+
+# Keep tracked env template files
+!.env.example
+
+# ----------------------------
+# Tool caches
+# ----------------------------
+.eslintcache
+.cache/
+.parcel-cache/
+.turbo/
+
+# ----------------------------
+# Editor / OS clutter
+# ----------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
