@@ -1,0 +1,76 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Lords of the Fallen",
+      "image": "/images/PS5-cd.jpg",
+      "price": 49.99,
+      "description": "Dark fantasy action RPG with challenging combat and rich world-building.",
+      "status": "active",
+      "category": "New Arrival",
+      "platform": "PS5",
+      "createdAt": "2026-04-27T20:55:02.310Z",
+      "updatedAt": "2026-04-27T20:55:02.310Z"
+    },
+    {
+      "id": 2,
+      "name": "Spider-Man 2",
+      "image": "/images/PS5-cd.jpg",
+      "price": 59.99,
+      "description": "Fast-paced open-world superhero adventure built for PS5 performance.",
+      "status": "active",
+      "category": "Adventure",
+      "platform": "PS5",
+      "createdAt": "2026-04-27T20:55:02.310Z",
+      "updatedAt": "2026-04-27T20:55:02.310Z"
+    },
+    {
+      "id": 3,
+      "name": "EA FC 25",
+      "image": "/images/PS5-cd.jpg",
+      "price": 39.99,
+      "description": "Competitive football title with updated squads and smooth online gameplay.",
+      "status": "inactive",
+      "category": "Sports",
+      "platform": "PS5",
+      "createdAt": "2026-04-27T20:55:02.310Z",
+      "updatedAt": "2026-04-27T20:55:02.310Z"
+    },
+    {
+      "id": 4,
+      "name": "God of War Ragnarok",
+      "image": "/images/PS5-cd.jpg",
+      "price": 54.99,
+      "description": "Story-driven action adventure with cinematic combat and exploration.",
+      "status": "active",
+      "category": "Adventure",
+      "platform": "PS5",
+      "createdAt": "2026-04-27T20:55:02.310Z",
+      "updatedAt": "2026-04-27T20:55:02.310Z"
+    },
+    {
+      "id": 5,
+      "name": "NBA 2K25",
+      "image": "/images/PS5-cd.jpg",
+      "price": 44.99,
+      "description": "Basketball simulation featuring improved controls and franchise depth.",
+      "status": "inactive",
+      "category": "Sports",
+      "platform": "PS5",
+      "createdAt": "2026-04-27T20:55:02.310Z",
+      "updatedAt": "2026-04-27T20:55:02.310Z"
+    }
+  ],
+  "heroImages": [
+    {
+      "id": "f6f29044-45d9-4289-85c0-95ef4dc92486",
+      "imageUrl": "/images/hero.png",
+      "title": "GameOrbit Main Hero",
+      "altText": "GameOrbit homepage hero banner",
+      "isActive": true,
+      "displayOrder": 0,
+      "createdAt": "2026-04-27T20:55:02.310Z",
+      "updatedAt": "2026-04-27T20:55:02.310Z"
+    }
+  ]
+}

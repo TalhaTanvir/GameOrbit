@@ -109,9 +109,8 @@ export default function ProductSection({ product }: ProductSectionProps) {
         <div className="rounded-2xl border bg-card p-4 sm:p-5">
           <h2 className="text-2xl font-extrabold">Product Details</h2>
           <p className="mt-2 max-w-4xl text-sm leading-6 text-foreground/80 sm:text-base">
-            {product.title} is a PS5 game disc crafted for players who want smooth gameplay, high-fidelity graphics, and
-            cinematic storytelling. This physical CD edition includes full disc media, original case artwork, and
-            compatibility with standard PlayStation 5 consoles.
+            {product.description ??
+              `${product.title} is a PS5 game disc crafted for players who want smooth gameplay, high-fidelity graphics, and cinematic storytelling. This physical CD edition includes full disc media, original case artwork, and compatibility with standard PlayStation 5 consoles.`}
           </p>
 
           <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2 sm:text-base">

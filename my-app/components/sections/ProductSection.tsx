@@ -1,26 +1,84 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { FiChevronDown, FiLoader } from "react-icons/fi";
+import { toast } from "sonner";
+
+import { apiClient, getApiErrorMessage } from "@/lib/http/api-client";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ProductCard from "@/components/sections/ProductCard";
-import { GAME_CATEGORIES, PRODUCTS } from "@/data/products";
-import type { ProductFilterCategory } from "@/types/product.types";
+import type { Product, ProductFilterCategory } from "@/types/product.types";
 
 const INITIAL_VISIBLE = 6;
 const LOAD_MORE_STEP = 6;
 
+function parseProducts(payload: unknown): Product[] {
+  const root = typeof payload === "object" && payload !== null ? (payload as Record<string, unknown>) : null;
+  const data = typeof root?.data === "object" && root.data !== null ? (root.data as Record<string, unknown>) : null;
+  const list = Array.isArray(data?.items) ? data.items : [];
+
+  return list
+    .map((item) => {
+      const product = item as Product;
+
+      if (!product?.id || !product?.title || !product?.price || !product?.image || !product?.category) {
+        return null;
+      }
+
+      return product;
+    })
+    .filter((product): product is Product => product !== null);
+}
+
 export default function ProductSection() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<ProductFilterCategory>("All Games");
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
 
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadProducts() {
+      try {
+        setIsLoading(true);
+        const response = await apiClient.get("/products");
+
+        if (mounted) {
+          setProducts(parseProducts(response.data));
+        }
+      } catch (error) {
+        if (mounted) {
+          toast.error(getApiErrorMessage(error, "Failed to load products."));
+        }
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void loadProducts();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const gameCategories = useMemo<ProductFilterCategory[]>(() => {
+    const uniqueCategories = Array.from(new Set(products.map((product) => product.category)));
+    return ["All Games", ...uniqueCategories];
+  }, [products]);
+
+  const effectiveSelectedCategory = gameCategories.includes(selectedCategory) ? selectedCategory : "All Games";
+
   const filteredProducts = useMemo(
     () =>
-      selectedCategory === "All Games"
-        ? PRODUCTS
-        : PRODUCTS.filter((product) => product.category === selectedCategory),
-    [selectedCategory],
+      effectiveSelectedCategory === "All Games"
+        ? products
+        : products.filter((product) => product.category === effectiveSelectedCategory),
+    [products, effectiveSelectedCategory],
   );
 
   const visibleProducts = filteredProducts.slice(0, visibleCount);
@@ -34,12 +92,12 @@ export default function ProductSection() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="w-full justify-between sm:w-56">
-                {selectedCategory}
-                <ChevronDown className="size-4 opacity-70" />
+                {effectiveSelectedCategory}
+                <FiChevronDown className="size-4 opacity-70" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              {GAME_CATEGORIES.map((category) => (
+              {gameCategories.map((category) => (
                 <DropdownMenuItem
                   key={category}
                   onClick={() => {
@@ -54,13 +112,23 @@ export default function ProductSection() {
           </DropdownMenu>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-6">
-          {visibleProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex min-h-48 items-center justify-center rounded-lg border border-border bg-muted/20">
+            <FiLoader className="size-5 animate-spin text-muted-foreground" aria-hidden="true" />
+          </div>
+        ) : visibleProducts.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-border bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+            No products available.
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-6">
+            {visibleProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        )}
 
-        {hasMore ? (
+        {!isLoading && hasMore ? (
           <div className="mt-10 flex justify-center">
             <Button
               onClick={() => setVisibleCount((current) => Math.min(current + LOAD_MORE_STEP, filteredProducts.length))}

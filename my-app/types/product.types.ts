@@ -9,4 +9,5 @@ export type Product = {
   image: string;
   platform: "PS5";
   category: ProductCategory;
+  description?: string;
 };
