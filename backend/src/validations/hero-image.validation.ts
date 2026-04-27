@@ -1,15 +1,26 @@
 import { z } from "zod";
 
+const booleanFromFormValue = z.preprocess((value) => {
+  if (typeof value === "string") {
+    const normalizedValue = value.trim().toLowerCase();
+
+    if (normalizedValue === "true") {
+      return true;
+    }
+
+    if (normalizedValue === "false") {
+      return false;
+    }
+  }
+
+  return value;
+}, z.boolean());
+
 export const createHeroImageSchema = z.object({
   title: z.string().trim().min(2).max(120),
-  imageUrl: z.string().trim().url(),
   altText: z.string().trim().min(2).max(180),
-  isActive: z.boolean().optional().default(true),
-  displayOrder: z.number().int().min(0).optional().default(0),
+  isActive: booleanFromFormValue.optional().default(true),
+  displayOrder: z.coerce.number().int().min(0).optional().default(0),
 });
 
-export const updateHeroImageSchema = createHeroImageSchema
-  .partial()
-  .refine((value) => Object.keys(value).length > 0, {
-    message: "At least one field is required",
-  });
+export const updateHeroImageSchema = createHeroImageSchema.partial();

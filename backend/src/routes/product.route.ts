@@ -10,6 +10,7 @@ import {
 } from "../controllers/product.controller.ts";
 import {
   requireAdminAuth,
+  uploadProductImages,
   validateObjectId,
   validateRequest,
 } from "../middleware/index.ts";
@@ -26,7 +27,12 @@ publicProductRouter.get(
 export const dashboardProductRouter = Router();
 dashboardProductRouter.use(requireAdminAuth);
 dashboardProductRouter.get("/", getAdminProducts);
-dashboardProductRouter.post("/", validateRequest(createProductSchema), createProduct);
+dashboardProductRouter.post(
+  "/",
+  uploadProductImages,
+  validateRequest(createProductSchema),
+  createProduct
+);
 dashboardProductRouter.get(
   "/:id",
   validateObjectId({ resourceName: "product" }),
@@ -35,6 +41,7 @@ dashboardProductRouter.get(
 dashboardProductRouter.patch(
   "/:id",
   validateObjectId({ resourceName: "product" }),
+  uploadProductImages,
   validateRequest(updateProductSchema),
   updateProductById
 );

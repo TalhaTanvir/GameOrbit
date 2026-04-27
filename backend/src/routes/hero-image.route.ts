@@ -9,6 +9,7 @@ import {
 } from "../controllers/hero-image.controller.ts";
 import {
   requireAdminAuth,
+  uploadHeroImage,
   validateObjectId,
   validateRequest,
 } from "../middleware/index.ts";
@@ -25,6 +26,7 @@ dashboardHeroImageRouter.use(requireAdminAuth);
 dashboardHeroImageRouter.get("/", getAdminHeroImages);
 dashboardHeroImageRouter.post(
   "/",
+  uploadHeroImage,
   validateRequest(createHeroImageSchema),
   createHeroImage
 );
@@ -36,6 +38,7 @@ dashboardHeroImageRouter.get(
 dashboardHeroImageRouter.patch(
   "/:id",
   validateObjectId({ resourceName: "hero image" }),
+  uploadHeroImage,
   validateRequest(updateHeroImageSchema),
   updateHeroImageById
 );

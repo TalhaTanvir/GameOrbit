@@ -3,6 +3,7 @@ import { model, Schema, type Types } from "mongoose";
 export type HeroImage = {
   title: string;
   imageUrl: string;
+  imagePublicId: string;
   altText: string;
   isActive: boolean;
   displayOrder: number;
@@ -21,6 +22,11 @@ const heroImageSchema = new Schema<HeroImage>(
       maxlength: 120,
     },
     imageUrl: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    imagePublicId: {
       type: String,
       required: true,
       trim: true,

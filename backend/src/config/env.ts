@@ -35,6 +35,7 @@ const envSchema = z.object({
   CLOUDINARY_CLOUD_NAME: z.string().min(1),
   CLOUDINARY_API_KEY: z.string().min(1),
   CLOUDINARY_API_SECRET: z.string().min(1),
+  CLOUDINARY_FOLDER_BASE: z.string().trim().min(1).default("gameorbit"),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(900000),
   RATE_LIMIT_MAX: z.coerce.number().int().positive().default(100),
 });
@@ -78,6 +79,7 @@ export const env = {
     cloudName: rawEnv.CLOUDINARY_CLOUD_NAME,
     apiKey: rawEnv.CLOUDINARY_API_KEY,
     apiSecret: rawEnv.CLOUDINARY_API_SECRET,
+    folderBase: rawEnv.CLOUDINARY_FOLDER_BASE,
   },
   rateLimit: {
     windowMs: rawEnv.RATE_LIMIT_WINDOW_MS,
