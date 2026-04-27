@@ -38,6 +38,7 @@ const adminSchema = new Schema<Admin>(
       type: String,
       enum: ["admin"],
       default: "admin",
+      unique: true,
       required: true,
     },
     lastLoginAt: {

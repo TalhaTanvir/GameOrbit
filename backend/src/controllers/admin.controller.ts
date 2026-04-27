@@ -41,19 +41,30 @@ export const setupAdmin = asyncHandler(async (request: Request, response: Respon
     password: string;
   };
 
-  const totalAdmins = await AdminModel.countDocuments();
-  if (totalAdmins > 0) {
+  const existingAdmin = await AdminModel.findOne().select("_id").lean();
+  if (existingAdmin) {
     throw new AppError("Admin setup already completed", 409);
   }
 
   const normalizedEmail = email.toLowerCase();
   const passwordHash = await hashPassword(password);
 
-  const admin = await AdminModel.create({
-    name,
-    email: normalizedEmail,
-    passwordHash,
-  });
+  const admin = await (async () => {
+    try {
+      return await AdminModel.create({
+        name,
+        email: normalizedEmail,
+        passwordHash,
+      });
+    } catch (error) {
+      const maybeMongoError = error as { code?: number };
+      if (maybeMongoError.code === 11000) {
+        throw new AppError("Admin setup already completed", 409);
+      }
+
+      throw error;
+    }
+  })();
 
   const accessToken = issueAccessToken(response, admin);
 

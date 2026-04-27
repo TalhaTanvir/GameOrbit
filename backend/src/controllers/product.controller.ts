@@ -26,14 +26,6 @@ type ProductWithImages = {
   }>;
 };
 
-const cleanupCloudinaryAssets = async (publicIds: string[]): Promise<void> => {
-  try {
-    await deleteImagesFromCloudinary(publicIds);
-  } catch (error) {
-    console.error("Cloudinary cleanup failed:", error);
-  }
-};
-
 const getUploadedProductFiles = (request: Request): Express.Multer.File[] => {
   if (!request.files) {
     return [];
@@ -95,14 +87,30 @@ export const createProduct = asyncHandler(async (request: Request, response: Res
   const productImages = uploadedImages.map(toProductImagePayload);
   const primaryImage = productImages[0];
 
-  const product = await ProductModel.create({
-    ...(payload as object),
-    imageUrl: primaryImage.url,
-    imagePublicId: primaryImage.publicId,
-    images: productImages,
-    createdBy: new Types.ObjectId(authRequest.admin.sub),
-    updatedBy: new Types.ObjectId(authRequest.admin.sub),
-  });
+  const product = await (async () => {
+    try {
+      return await ProductModel.create({
+        ...(payload as object),
+        imageUrl: primaryImage.url,
+        imagePublicId: primaryImage.publicId,
+        images: productImages,
+        createdBy: new Types.ObjectId(authRequest.admin.sub),
+        updatedBy: new Types.ObjectId(authRequest.admin.sub),
+      });
+    } catch (error) {
+      try {
+        await deleteImagesFromCloudinary(uploadedImages.map((image) => image.publicId));
+      } catch (cleanupError) {
+        console.error("Cloudinary rollback failed during product create:", cleanupError);
+        throw new AppError(
+          "Failed to create product and rollback uploaded media. Manual cleanup may be required.",
+          500
+        );
+      }
+
+      throw error;
+    }
+  })();
 
   response.status(201).json({
     success: true,
@@ -225,7 +233,15 @@ export const updateProductById = asyncHandler(async (request: Request, response:
       }).lean();
     } catch (error) {
       if (uploadedImages.length > 0) {
-        await cleanupCloudinaryAssets(uploadedImages.map((image) => image.publicId));
+        try {
+          await deleteImagesFromCloudinary(uploadedImages.map((image) => image.publicId));
+        } catch (cleanupError) {
+          console.error("Cloudinary rollback failed during product update:", cleanupError);
+          throw new AppError(
+            "Failed to update product and rollback uploaded media. Manual cleanup may be required.",
+            500
+          );
+        }
       }
 
       throw error;
@@ -234,14 +250,30 @@ export const updateProductById = asyncHandler(async (request: Request, response:
 
   if (!product) {
     if (uploadedImages.length > 0) {
-      await cleanupCloudinaryAssets(uploadedImages.map((image) => image.publicId));
+      try {
+        await deleteImagesFromCloudinary(uploadedImages.map((image) => image.publicId));
+      } catch (cleanupError) {
+        console.error("Cloudinary rollback failed after product update miss:", cleanupError);
+        throw new AppError(
+          "Failed to rollback uploaded media after update. Manual cleanup may be required.",
+          500
+        );
+      }
     }
 
     throw new AppError("Product not found", 404);
   }
 
   if (uploadedImages.length > 0) {
-    await cleanupCloudinaryAssets(getProductImagePublicIds(existingProduct));
+    try {
+      await deleteImagesFromCloudinary(getProductImagePublicIds(existingProduct));
+    } catch (cleanupError) {
+      console.error("Cloudinary cleanup failed after product update:", cleanupError);
+      throw new AppError(
+        "Product updated but old media cleanup failed. Manual cleanup may be required.",
+        502
+      );
+    }
   }
 
   response.status(200).json({
@@ -260,7 +292,15 @@ export const deleteProductById = asyncHandler(async (request: Request, response:
     throw new AppError("Product not found", 404);
   }
 
-  await cleanupCloudinaryAssets(getProductImagePublicIds(product));
+  try {
+    await deleteImagesFromCloudinary(getProductImagePublicIds(product));
+  } catch (cleanupError) {
+    console.error("Cloudinary cleanup failed after product delete:", cleanupError);
+    throw new AppError(
+      "Product deleted but media cleanup failed. Manual cleanup may be required.",
+      502
+    );
+  }
 
   response.status(200).json({
     success: true,

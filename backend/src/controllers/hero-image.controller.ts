@@ -16,14 +16,6 @@ type CreateHeroImageBody = {
   displayOrder?: number;
 };
 
-const cleanupCloudinaryAssets = async (publicIds: string[]): Promise<void> => {
-  try {
-    await deleteImagesFromCloudinary(publicIds);
-  } catch (error) {
-    console.error("Cloudinary cleanup failed:", error);
-  }
-};
-
 const getHeroImagePublicIds = (heroImage: { imagePublicId?: string | null }): string[] => {
   if (typeof heroImage.imagePublicId !== "string" || heroImage.imagePublicId.length === 0) {
     return [];
@@ -47,12 +39,28 @@ export const createHeroImage = asyncHandler(async (request: Request, response: R
     publicIdPrefix: payload.title,
   });
 
-  const heroImage = await HeroImageModel.create({
-    ...(payload as object),
-    imageUrl: uploadedImage.url,
-    imagePublicId: uploadedImage.publicId,
-    createdBy: new Types.ObjectId(authRequest.admin.sub),
-  });
+  const heroImage = await (async () => {
+    try {
+      return await HeroImageModel.create({
+        ...(payload as object),
+        imageUrl: uploadedImage.url,
+        imagePublicId: uploadedImage.publicId,
+        createdBy: new Types.ObjectId(authRequest.admin.sub),
+      });
+    } catch (error) {
+      try {
+        await deleteImagesFromCloudinary([uploadedImage.publicId]);
+      } catch (cleanupError) {
+        console.error("Cloudinary rollback failed during hero image create:", cleanupError);
+        throw new AppError(
+          "Failed to create hero image and rollback uploaded media. Manual cleanup may be required.",
+          500
+        );
+      }
+
+      throw error;
+    }
+  })();
 
   response.status(201).json({
     success: true,
@@ -150,7 +158,15 @@ export const updateHeroImageById = asyncHandler(async (request: Request, respons
       }).lean();
     } catch (error) {
       if (uploadedImage) {
-        await cleanupCloudinaryAssets([uploadedImage.publicId]);
+        try {
+          await deleteImagesFromCloudinary([uploadedImage.publicId]);
+        } catch (cleanupError) {
+          console.error("Cloudinary rollback failed during hero image update:", cleanupError);
+          throw new AppError(
+            "Failed to update hero image and rollback uploaded media. Manual cleanup may be required.",
+            500
+          );
+        }
       }
 
       throw error;
@@ -159,14 +175,30 @@ export const updateHeroImageById = asyncHandler(async (request: Request, respons
 
   if (!heroImage) {
     if (uploadedImage) {
-      await cleanupCloudinaryAssets([uploadedImage.publicId]);
+      try {
+        await deleteImagesFromCloudinary([uploadedImage.publicId]);
+      } catch (cleanupError) {
+        console.error("Cloudinary rollback failed after hero image update miss:", cleanupError);
+        throw new AppError(
+          "Failed to rollback uploaded media after update. Manual cleanup may be required.",
+          500
+        );
+      }
     }
 
     throw new AppError("Hero image not found", 404);
   }
 
   if (uploadedImage && existingHeroImage.imagePublicId !== uploadedImage.publicId) {
-    await cleanupCloudinaryAssets(getHeroImagePublicIds(existingHeroImage));
+    try {
+      await deleteImagesFromCloudinary(getHeroImagePublicIds(existingHeroImage));
+    } catch (cleanupError) {
+      console.error("Cloudinary cleanup failed after hero image update:", cleanupError);
+      throw new AppError(
+        "Hero image updated but old media cleanup failed. Manual cleanup may be required.",
+        502
+      );
+    }
   }
 
   response.status(200).json({
@@ -185,7 +217,15 @@ export const deleteHeroImageById = asyncHandler(async (request: Request, respons
     throw new AppError("Hero image not found", 404);
   }
 
-  await cleanupCloudinaryAssets(getHeroImagePublicIds(heroImage));
+  try {
+    await deleteImagesFromCloudinary(getHeroImagePublicIds(heroImage));
+  } catch (cleanupError) {
+    console.error("Cloudinary cleanup failed after hero image delete:", cleanupError);
+    throw new AppError(
+      "Hero image deleted but media cleanup failed. Manual cleanup may be required.",
+      502
+    );
+  }
 
   response.status(200).json({
     success: true,
